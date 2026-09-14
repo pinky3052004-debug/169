@@ -5,7 +5,7 @@ import subprocess
 os.makedirs("input_folder", exist_ok=True)
 
 print("Google Drive မှ ဖိုင်များကို ဆွဲထုတ်နေပါပြီ...")
-os.system("rclone copy gdrive:NanNanIphone ./input_folder --max-depth 1")
+os.system("rclone copy mydrive:NanNanIphone ./input_folder --max-depth 1")
 
 if not os.path.exists("processed.txt"):
     open("processed.txt", "w").close()
@@ -34,7 +34,7 @@ for file in unprocessed_files:
     subprocess.run(cmd, shell=True, check=True)
     
     print(f"Uploading: {output_path} to NanNanIphone2")
-    os.system(f"rclone copy '{output_path}' gdrive:NanNanIphone2")
+    os.system(f"rclone copy '{output_path}' mydrive:NanNanIphone2")
     
     # ပြီးသွားသော ဖိုင်များကို မှတ်တမ်းတင်ခြင်း
     with open("processed.txt", "a") as f:
