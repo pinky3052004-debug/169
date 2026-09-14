@@ -15,10 +15,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Set up Rclone
-        uses: AnimMouse/setup-rclone@v1
-        with:
-          rclone_config: ${{ secrets.RCLONE_CONFIG }}
+      - name: Install Rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
 
       - name: Configure Rclone
         run: |
