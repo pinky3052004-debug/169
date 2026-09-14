@@ -3,6 +3,9 @@ name: Batch Convert 10 Videos
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   convert:
     runs-on: ubuntu-latest
@@ -22,7 +25,9 @@ jobs:
       - name: Configure Rclone
         run: |
           mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+          cat << 'EOF' > ~/.config/rclone/rclone.conf
+          ${{ secrets.RCLONE_CONFIG }}
+          EOF
           echo "=== Rclone Config Check ==="
           rclone listremotes
 
