@@ -23,6 +23,8 @@ jobs:
         run: |
           mkdir -p ~/.config/rclone
           echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+          echo "=== Rclone Config Check ==="
+          rclone listremotes
 
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
