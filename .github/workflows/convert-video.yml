@@ -1,19 +1,22 @@
-name: Convert 9:16 to 16:9 Video
+name: Batch Convert 10 Videos
 
 on:
   workflow_dispatch:
 
 jobs:
-  process-video:
+  convert:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Rclone
-        uses: animalll/setup-rclone@v1 # သို့မဟုတ် rclone ကို တိုက်ရိုက် install လုပ်ရန်
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          rclone_version: 'latest'
+          python-version: '3.10'
+
+      - name: Set up Rclone
+        uses: animalll/setup-rclone@v1
 
       - name: Configure Rclone
         run: |
@@ -23,17 +26,12 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-      - name: Download Video from NanNanIphone
-        run: |
-          # Folder ID ဖြင့် နောက်ဆုံးထွက် ဗီဒီယိုဖိုင်ကို ဒေါင်းလုပ်ဆွဲခြင်း
-          rclone copyto gdrive,root_folder_id="${{ secrets.INPUT_FOLDER_ID }}": input.mp4 --drive-import-formats mp4 || \
-          rclone copy gdrive:NanNanIphone input.mp4 --max-age 1d
-          # မှတ်ချက်။ သင့် Google Drive တည်ဆောက်ပုံအပေါ်မူတည်၍ rclone copyto (သို့) rclone copy ကို သုံးနိုင်ပါသည်။
+      - name: Run Processing Script
+        run: python process.py
 
-      - name: Process Video (9:16 to 16:9 Blur Background)
+      - name: Save Processed History to Repo
         run: |
-          ffmpeg -i input.mp4 -filter_complex "[0:v]scale=ih*16/9:ih,boxblur=s=40:p=3[bg];[0:v]scale=-1:1080[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2" -c:a copy output.mp4
-
-      - name: Upload Video to NanNanIphone2
-        run: |
-          rclone copy output.mp4 gdrive,root_folder_id="${{ secrets.OUTPUT_FOLDER_ID }}"/
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add processed.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update processed video list" && git push)
