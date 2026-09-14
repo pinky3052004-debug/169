@@ -17,7 +17,8 @@ if not os.path.exists("input_folder"):
     print("input_folder မရှိပါ။")
     exit(1)
 
-files = [f for f in os.listdir("input_folder") if f.endswith((".mp4", ".mov", ".mkv", ".MP4", ".MOV"))]
+# အစဉ်လိုက် (Sorted) ဖြစ်အောင် ပြင်ဆင်ထားသည်
+files = sorted([f for f in os.listdir("input_folder") if f.endswith((".mp4", ".mov", ".mkv", ".MP4", ".MOV"))])
 unprocessed_files = [f for f in files if f not in processed_files][:10] # တစ်ကြိမ်လျှင် ၁၀ ခုသာ
 
 if not unprocessed_files:
@@ -29,18 +30,15 @@ for file in unprocessed_files:
     output_path = f"output_{file}"
     
     print(f"Converting: {file}")
-    # 9:16 to 16:9 Blur Background (Fixed even width/height using trunc)
     cmd = f"ffmpeg -i '{input_path}' -filter_complex '[0:v]scale=ih*16/9:ih,gblur=sigma=20,scale=trunc(iw/2)*2:trunc(ih/2)*2[bg];[0:v]scale=-1:1080,scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2' -c:a copy '{output_path}'"
     subprocess.run(cmd, shell=True, check=True)
     
     print(f"Uploading: {output_path} to NanNanIphone2")
     os.system(f"rclone copy '{output_path}' mydrive:NanNanIphone2")
     
-    # ပြီးသွားသော ဖိုင်များကို မှတ်တမ်းတင်ခြင်း
     with open("processed.txt", "a") as f:
         f.write(file + "\n")
         
-    # ဒေသတွင်း ဖိုင်ဟောင်းများကို ရှင်းလင်းခြင်း
     if os.path.exists(input_path):
         os.remove(input_path)
     if os.path.exists(output_path):
