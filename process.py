@@ -1,7 +1,10 @@
 import os
 import subprocess
 
-# Rclone ဖြင့် Google Drive (NanNanIphone) မှ ဖိုင်များကို ဆွဲထုတ်ခြင်း (အများဆုံး ၁၀ ခု)
+# input_folder မရှိပါက ဖန်တီးရန်
+os.makedirs("input_folder", exist_ok=True)
+
+print("Google Drive မှ ဖိုင်များကို ဆွဲထုတ်နေပါပြီ...")
 os.system("rclone copy gdrive:NanNanIphone ./input_folder --max-depth 1")
 
 if not os.path.exists("processed.txt"):
@@ -10,7 +13,11 @@ if not os.path.exists("processed.txt"):
 with open("processed.txt", "r") as f:
     processed_files = set(f.read().splitlines())
 
-files = [f for f in os.listdir("input_folder") if f.endswith((".mp4", ".mov", ".mkv"))]
+if not os.path.exists("input_folder"):
+    print("input_folder မရှိပါ။")
+    exit(1)
+
+files = [f for f in os.listdir("input_folder") if f.endswith((".mp4", ".mov", ".mkv", ".MP4", ".MOV"))]
 unprocessed_files = [f for f in files if f not in processed_files][:10] # တစ်ကြိမ်လျှင် ၁၀ ခုသာ
 
 if not unprocessed_files:
@@ -26,11 +33,17 @@ for file in unprocessed_files:
     cmd = f"ffmpeg -i '{input_path}' -filter_complex '[0:v]scale=ih*16/9:ih,boxblur=s=40:p=3[bg];[0:v]scale=-1:1080[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2' -c:a copy '{output_path}'"
     subprocess.run(cmd, shell=True, check=True)
     
-    # NanNanIphone2 သို့ တင်ခြင်း
+    print(f"Uploading: {output_path} to NanNanIphone2")
     os.system(f"rclone copy '{output_path}' gdrive:NanNanIphone2")
     
     # ပြီးသွားသော ဖိုင်များကို မှတ်တမ်းတင်ခြင်း
     with open("processed.txt", "a") as f:
         f.write(file + "\n")
+        
+    # ဒေသတွင်း ဖိုင်ဟောင်းများကို ရှင်းလင်းခြင်း
+    if os.path.exists(input_path):
+        os.remove(input_path)
+    if os.path.exists(output_path):
+        os.remove(output_path)
 
 print("ဤတစ်ကြိမ်အတွက် ဗီဒီယို ၁၀ ခု ပြောင်းလဲပြီးပါပြီ။")
