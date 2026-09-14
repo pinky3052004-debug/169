@@ -29,8 +29,8 @@ for file in unprocessed_files:
     output_path = f"output_{file}"
     
     print(f"Converting: {file}")
-    # 9:16 to 16:9 Blur Background (Updated with gblur)
-    cmd = f"ffmpeg -i '{input_path}' -filter_complex '[0:v]scale=ih*16/9:ih,gblur=sigma=20[bg];[0:v]scale=-1:1080[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2' -c:a copy '{output_path}'"
+    # 9:16 to 16:9 Blur Background (Fixed even width/height using trunc)
+    cmd = f"ffmpeg -i '{input_path}' -filter_complex '[0:v]scale=ih*16/9:ih,gblur=sigma=20,scale=trunc(iw/2)*2:trunc(ih/2)*2[bg];[0:v]scale=-1:1080,scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2' -c:a copy '{output_path}'"
     subprocess.run(cmd, shell=True, check=True)
     
     print(f"Uploading: {output_path} to NanNanIphone2")
